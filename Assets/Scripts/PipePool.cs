@@ -1,23 +1,24 @@
+
 using System.Collections.Generic;
 using UnityEngine;
 
 public class PipePool : MonoBehaviour
 {
-    [Header("Pool")]
+    [Header("Object Pool")]
     [SerializeField] private PipePair pipePrefab;
     [SerializeField] private int poolSize = 5;
 
-    [Header("Movement")]
+    [Header("Dynamic Difficulty")]
     [SerializeField] private float baseSpeed = 2.5f;
-
-    [SerializeField] private float speedIncreasePerStep = 0.35f;
-
+    [SerializeField] private float speedIncreasePerStep = 0.75f;
     [SerializeField] private int scorePerStep = 5;
+    [SerializeField] private int maxDifficultyLevel = 8;
+    [SerializeField] private float maxSpeed = 8f;
 
-    [SerializeField] private float maxSpeed = 5f;
+    [Header("Pipe Spacing")]
     [SerializeField] private float spacing = 4f;
 
-    [Header("Spawn")]
+    [Header("Spawn Position")]
     [SerializeField] private float startX = 5.5f;
     [SerializeField] private float leftBoundary = -7f;
 
@@ -26,6 +27,8 @@ public class PipePool : MonoBehaviour
     [SerializeField] private float maxY = 1.5f;
 
     private readonly List<PipePair> pipes = new();
+
+    private int lastDifficultyStep = -1;
 
     private void Start()
     {
@@ -54,9 +57,39 @@ public class PipePool : MonoBehaviour
             float y = Random.Range(minY, maxY);
 
             pipe.ResetPipe(x, y);
-
             pipes.Add(pipe);
         }
+    }
+
+    private float GetCurrentSpeed()
+    {
+        int step = GameManager.Instance.Score /
+                Mathf.Max(1, scorePerStep);
+
+        // Giới hạn tối đa 8 cấp độ
+        step = Mathf.Clamp(
+            step,
+            0,
+            Mathf.Max(1, maxDifficultyLevel) - 1
+        );
+
+        float currentSpeed = Mathf.Min(
+            baseSpeed + step * speedIncreasePerStep,
+            maxSpeed
+        );
+
+        if (step != lastDifficultyStep)
+        {
+            lastDifficultyStep = step;
+
+            Debug.Log(
+                $"LEVEL {step + 1}/{maxDifficultyLevel} | " +
+                $"Score: {GameManager.Instance.Score} | " +
+                $"Pipe Speed: {currentSpeed:F2}"
+            );
+        }
+
+        return currentSpeed;
     }
 
     private void MovePipes()
@@ -66,9 +99,7 @@ public class PipePool : MonoBehaviour
         foreach (PipePair pipe in pipes)
         {
             pipe.transform.position +=
-                Vector3.left *
-                currentSpeed *
-                Time.deltaTime;
+                Vector3.left * currentSpeed * Time.deltaTime;
         }
     }
 
@@ -76,13 +107,13 @@ public class PipePool : MonoBehaviour
     {
         foreach (PipePair pipe in pipes)
         {
-            if (pipe.transform.position.x < leftBoundary)
-            {
-                float newX = GetRightMostX() + spacing;
-                float newY = Random.Range(minY, maxY);
+            if (pipe.transform.position.x >= leftBoundary)
+                continue;
 
-                pipe.ResetPipe(newX, newY);
-            }
+            float newX = GetRightMostX() + spacing;
+            float newY = Random.Range(minY, maxY);
+
+            pipe.ResetPipe(newX, newY);
         }
     }
 
@@ -92,26 +123,12 @@ public class PipePool : MonoBehaviour
 
         foreach (PipePair pipe in pipes)
         {
-            if (pipe.transform.position.x > maxX)
-            {
-                maxX = pipe.transform.position.x;
-            }
+            maxX = Mathf.Max(
+                maxX,
+                pipe.transform.position.x
+            );
         }
 
         return maxX;
-    }
-
-    private float GetCurrentSpeed()
-    {
-        int step =
-            GameManager.Instance.Score / scorePerStep;
-
-        float currentSpeed =
-            baseSpeed + step * speedIncreasePerStep;
-
-        return Mathf.Min(
-            currentSpeed,
-            maxSpeed
-        );
     }
 }
