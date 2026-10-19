@@ -83,4 +83,57 @@ public class ParallaxLayer : MonoBehaviour
             );
         }
     }
+    
+    public void SetTint(Color color)
+    {
+        if (first == null)
+            first = GetComponent<SpriteRenderer>();
+
+        if (first != null)
+            first.color = color;
+
+        // Đồng bộ màu với bản sao Parallax
+        if (second != null)
+            second.color = color;
+    }
+
+    
+    public void SetCloudSprite(Sprite newSprite)
+    {
+        if (newSprite == null)
+            return;
+
+        if (first == null)
+            first = GetComponent<SpriteRenderer>();
+
+        if (first.sprite == newSprite)
+            return;
+
+        // Đổi sprite cho cả hai ảnh Parallax
+        first.sprite = newSprite;
+
+        if (second != null)
+        {
+            second.sprite = newSprite;
+
+            float width = first.bounds.size.x;
+
+            // Giữ thứ tự trái/phải của hai ảnh
+            if (second.transform.position.x >=
+                first.transform.position.x)
+            {
+                second.transform.position =
+                    first.transform.position +
+                    Vector3.right * width;
+            }
+            else
+            {
+                second.transform.position =
+                    first.transform.position -
+                    Vector3.right * width;
+            }
+        }
+    }
+
+
 }
