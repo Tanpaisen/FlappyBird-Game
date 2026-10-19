@@ -17,6 +17,12 @@ public class BirdController : MonoBehaviour
         if (!isAlive)
             return;
 
+        if (GameManager.Instance == null ||
+            !GameManager.Instance.IsPlaying)
+        {
+            return;
+        }
+
         if (Input.GetKeyDown(KeyCode.Space) ||
             Input.GetMouseButtonDown(0))
         {
@@ -34,8 +40,12 @@ public class BirdController : MonoBehaviour
 
     private void OnCollisionEnter2D(Collision2D collision)
     {
-        if (!isAlive)
+        if (!isAlive ||
+            GameManager.Instance == null ||
+            !GameManager.Instance.IsPlaying)
+        {
             return;
+        }
 
         isAlive = false;
 
