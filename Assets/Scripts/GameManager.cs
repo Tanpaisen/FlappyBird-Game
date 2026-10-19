@@ -6,15 +6,28 @@ public class GameManager : MonoBehaviour
 {
     public static GameManager Instance { get; private set; }
 
+    public enum GameState
+    {
+        Ready,
+        Playing,
+        GameOver
+    }
+
     [Header("UI")]
     [SerializeField] private TMP_Text scoreText;
     [SerializeField] private TMP_Text highScoreText;
+    [SerializeField] private GameObject startPanel;
     [SerializeField] private GameObject gameOverPanel;
 
     private int score;
     private int highScore;
 
-    public bool IsPlaying { get; private set; } = true;
+    public int Score => score;
+
+    public GameState CurrentState { get; private set; }
+
+    public bool IsPlaying =>
+        CurrentState == GameState.Playing;
 
     private void Awake()
     {
@@ -29,15 +42,29 @@ public class GameManager : MonoBehaviour
 
     private void Start()
     {
-        Time.timeScale = 1f;
-
         score = 0;
+
         highScore = PlayerPrefs.GetInt("HighScore", 0);
 
-        IsPlaying = true;
+        CurrentState = GameState.Ready;
 
+        startPanel.SetActive(true);
         gameOverPanel.SetActive(false);
+
         UpdateUI();
+
+        // Chờ người chơi bấm START
+        Time.timeScale = 0f;
+    }
+
+    public void StartGame()
+    {
+        CurrentState = GameState.Playing;
+
+        startPanel.SetActive(false);
+        gameOverPanel.SetActive(false);
+
+        Time.timeScale = 1f;
     }
 
     public void AddScore()
@@ -69,7 +96,7 @@ public class GameManager : MonoBehaviour
         if (!IsPlaying)
             return;
 
-        IsPlaying = false;
+        CurrentState = GameState.GameOver;
 
         gameOverPanel.SetActive(true);
 

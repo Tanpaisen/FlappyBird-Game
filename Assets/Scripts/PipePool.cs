@@ -8,7 +8,13 @@ public class PipePool : MonoBehaviour
     [SerializeField] private int poolSize = 5;
 
     [Header("Movement")]
-    [SerializeField] private float speed = 2.5f;
+    [SerializeField] private float baseSpeed = 2.5f;
+
+    [SerializeField] private float speedIncreasePerStep = 0.35f;
+
+    [SerializeField] private int scorePerStep = 5;
+
+    [SerializeField] private float maxSpeed = 5f;
     [SerializeField] private float spacing = 4f;
 
     [Header("Spawn")]
@@ -28,6 +34,12 @@ public class PipePool : MonoBehaviour
 
     private void Update()
     {
+        if (GameManager.Instance == null ||
+            !GameManager.Instance.IsPlaying)
+        {
+            return;
+        }
+
         MovePipes();
         RecyclePipes();
     }
@@ -49,10 +61,14 @@ public class PipePool : MonoBehaviour
 
     private void MovePipes()
     {
+        float currentSpeed = GetCurrentSpeed();
+
         foreach (PipePair pipe in pipes)
         {
             pipe.transform.position +=
-                Vector3.left * speed * Time.deltaTime;
+                Vector3.left *
+                currentSpeed *
+                Time.deltaTime;
         }
     }
 
@@ -83,5 +99,19 @@ public class PipePool : MonoBehaviour
         }
 
         return maxX;
+    }
+
+    private float GetCurrentSpeed()
+    {
+        int step =
+            GameManager.Instance.Score / scorePerStep;
+
+        float currentSpeed =
+            baseSpeed + step * speedIncreasePerStep;
+
+        return Mathf.Min(
+            currentSpeed,
+            maxSpeed
+        );
     }
 }
