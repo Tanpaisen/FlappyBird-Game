@@ -32,6 +32,13 @@ public class GameManager : MonoBehaviour
     [SerializeField] private GameObject pausePanel;
     [SerializeField] private GameObject pauseButton;
 
+    [Header("Score Effects")]
+    [SerializeField] private ScorePopupEffect scorePopupEffect;
+
+    [Header("Hit Effects")]
+    [SerializeField] private HitFlashEffect hitFlashEffect;
+    [SerializeField] private CameraShake cameraShake;
+
     private int score;
     private int highScore;
 
@@ -165,6 +172,9 @@ public class GameManager : MonoBehaviour
 
         UpdateUI();
 
+        if (scorePopupEffect != null)
+            scorePopupEffect.Play();
+
         AudioManager.Instance?.PlayScore();
     }
 
@@ -192,7 +202,10 @@ public class GameManager : MonoBehaviour
             return;
 
         CurrentState = GameState.GameOver;
-
+        
+        hitFlashEffect?.Play();
+        cameraShake?.Shake();
+        
         if (AudioManager.Instance != null)
         {
             AudioManager.Instance.StopMusic();
