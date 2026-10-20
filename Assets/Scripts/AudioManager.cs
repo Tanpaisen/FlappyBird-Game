@@ -99,6 +99,20 @@ public class AudioManager : MonoBehaviour
         UpdateMusicUI();
     }
 
+    public void PauseMusic()
+    {
+        if (musicSource != null && musicSource.isPlaying)
+            musicSource.Pause();
+    }
+
+    public void ResumeMusic()
+    {
+        if (!musicEnabled || musicSource == null)
+            return;
+
+        musicSource.UnPause();
+    }
+
     private void UpdateMusicUI()
     {
         if (musicButtonText != null)
