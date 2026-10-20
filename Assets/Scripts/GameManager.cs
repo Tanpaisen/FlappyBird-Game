@@ -21,6 +21,13 @@ public class GameManager : MonoBehaviour
     [SerializeField] private GameObject startPanel;
     [SerializeField] private GameObject gameOverPanel;
 
+    [Header("Game Over Results")]
+    [SerializeField] private TMP_Text finalScoreText;
+    [SerializeField] private TMP_Text finalBestText;
+    [SerializeField] private TMP_Text newBestText;
+
+    private bool brokeHighScore;
+
     [Header("Pause UI")]
     [SerializeField] private GameObject pausePanel;
     [SerializeField] private GameObject pauseButton;
@@ -52,6 +59,7 @@ public class GameManager : MonoBehaviour
     {
         score = 0;
         highScore = PlayerPrefs.GetInt("HighScore", 0);
+        brokeHighScore = false;
 
         CurrentState = GameState.Ready;
 
@@ -86,6 +94,8 @@ public class GameManager : MonoBehaviour
             return;
 
         CurrentState = GameState.Playing;
+        scoreText.gameObject.SetActive(true);
+        highScoreText.gameObject.SetActive(true);
 
         startPanel.SetActive(false);
         gameOverPanel.SetActive(false);
@@ -143,10 +153,11 @@ public class GameManager : MonoBehaviour
             return;
 
         score++;
-
+   
         if (score > highScore)
         {
             highScore = score;
+            brokeHighScore = true;
 
             PlayerPrefs.SetInt("HighScore", highScore);
             PlayerPrefs.Save();
@@ -163,6 +174,18 @@ public class GameManager : MonoBehaviour
         highScoreText.text = $"Best: {highScore}";
     }
 
+    private void UpdateGameOverUI()
+    {
+        if (finalScoreText != null)
+            finalScoreText.text = $"SCORE: {score}";
+
+        if (finalBestText != null)
+            finalBestText.text = $"BEST: {highScore}";
+
+        if (newBestText != null)
+            newBestText.gameObject.SetActive(brokeHighScore);
+    }
+
     public void GameOver()
     {
         if (!IsPlaying)
@@ -176,6 +199,9 @@ public class GameManager : MonoBehaviour
             AudioManager.Instance.PlayGameOver();
         }
 
+        UpdateGameOverUI();
+        scoreText.gameObject.SetActive(false);
+        highScoreText.gameObject.SetActive(false);
         gameOverPanel.SetActive(true);
 
         if (pausePanel != null)
